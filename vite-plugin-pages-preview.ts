@@ -247,6 +247,7 @@ function generateFullPage(pageName: string, pageContent: string): string {
   <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/src/styles/main.scss">
   <script type="module" src="/src/js/index.ts"></script>
+  <script type="module" src="/svg-sprite-hmr.ts"></script>
 
 </head>
 <body>

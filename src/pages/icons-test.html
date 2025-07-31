@@ -1,0 +1,142 @@
+<div class="container">
+  <h1>SVG Sprite Test</h1>
+
+  <h2>Available Icons</h2>
+  <div class="icon-grid">
+    <div class="icon-item">
+      <svg class="icon" aria-hidden="true">
+        <use href="/sprite.svg#chevron-left" />
+      </svg>
+      <span>chevron-left</span>
+    </div>
+
+    <div class="icon-item">
+      <svg class="icon" aria-hidden="true">
+        <use href="/sprite.svg#chevron-right" />
+      </svg>
+      <span>chevron-right</span>
+    </div>
+
+    <div class="icon-item">
+      <svg class="icon" aria-hidden="true">
+        <use href="/sprite.svg#github" />
+      </svg>
+      <span>github</span>
+    </div>
+
+    <div class="icon-item">
+      <svg class="icon" aria-hidden="true">
+        <use href="/sprite.svg#twitter" />
+      </svg>
+      <span>twitter</span>
+    </div>
+  </div>
+
+  <div class="test-icon"></div>
+  <div class="test-icon2"></div>
+
+  <h2>Different Sizes</h2>
+  <div class="size-demo">
+    <svg class="icon icon--small" aria-hidden="true">
+      <use href="/sprite.svg#github" />
+    </svg>
+    <svg class="icon" aria-hidden="true">
+      <use href="/sprite.svg#github" />
+    </svg>
+    <svg class="icon icon--medium" aria-hidden="true">
+      <use href="/sprite.svg#github" />
+    </svg>
+    <svg class="icon icon--large" aria-hidden="true">
+      <use href="/sprite.svg#github" />
+    </svg>
+    <svg class="icon icon--xl" aria-hidden="true">
+      <use href="/sprite.svg#github" />
+    </svg>
+  </div>
+
+  <h2>Usage Example</h2>
+  <div class="example">
+    <h3>HTML:</h3>
+    <pre><code>&lt;svg class="icon" aria-hidden="true"&gt;
+  &lt;use href="/sprite.svg#chevron-left" /&gt;
+&lt;/svg&gt;</code></pre>
+
+    <h3>Available Icons:</h3>
+    <ul>
+      <li><code>chevron-left</code></li>
+      <li><code>chevron-right</code></li>
+      <li><code>github</code></li>
+      <li><code>twitter</code></li>
+    </ul>
+
+    <h3>Size Classes:</h3>
+    <ul>
+      <li><code>icon--small</code> (14px)</li>
+      <li><code>icon</code> (16px - default)</li>
+      <li><code>icon--medium</code> (20px)</li>
+      <li><code>icon--large</code> (24px)</li>
+      <li><code>icon--xl</code> (32px)</li>
+    </ul>
+  </div>
+</div>
+<style>
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: system-ui, sans-serif;
+  }
+
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .size-demo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .example {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+  }
+
+  pre {
+    background: #f0f0f0;
+    padding: 0.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  code {
+    background: #f0f0f0;
+    padding: 0.125rem 0.25rem;
+    border-radius: 2px;
+    font-family: monospace;
+  }
+
+  span {
+    font-size: 0.875rem;
+    color: #666;
+  }
+</style>

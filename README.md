@@ -7,6 +7,7 @@ A simple, no-bullshit static site framework with TypeScript, SCSS, and HTML impo
 - **Simple HTML templates** with `<!-- @import: file.html -->` support
 - **SCSS compilation** with autoprefixer into a single CSS file
 - **Individual JavaScript files** (no bundling madness)
+- **SVG sprite generation** with hot reload for icons
 - **Nested directory support** for organized projects
 - **Live preview** with auto-reload during development
 - **Static asset handling** via public directory
