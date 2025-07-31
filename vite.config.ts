@@ -81,61 +81,158 @@ export default defineConfig(async ({ command }) => {
         output: {
           entryFileNames: (chunkInfo) => {
             if (chunkInfo.name?.startsWith("js/")) {
-              return "[name].js";
+              return "public/[name].js";
             }
-            return "[name].js";
+            return "public/[name].js";
           },
           assetFileNames: (assetInfo) => {
             if (assetInfo.name?.endsWith(".css")) {
-              return "styles.css";
+              return "public/styles.css";
             }
-            return "assets/[name]-[hash][extname]";
+            return "public/assets/[name]-[hash][extname]";
           },
         },
       },
     },
-    publicDir: "public", // Copy public assets to dist
+    publicDir: "", // Disable default public dir copying
     plugins: [
       {
+        name: "copy-static-assets",
+        writeBundle: async () => {
+          try {
+            const srcPublicPath = path.resolve("public");
+            const destPublicPath = path.resolve("dist/public");
+
+            // Create dist/public directory
+            await fs.mkdir(destPublicPath, { recursive: true });
+
+            // Copy files from public/ to dist/public/
+            const copyRecursive = async (src: string, dest: string) => {
+              const items = await fs.readdir(src, { withFileTypes: true });
+              for (const item of items) {
+                const srcPath = path.join(src, item.name);
+                const destPath = path.join(dest, item.name);
+                if (item.isDirectory()) {
+                  await fs.mkdir(destPath, { recursive: true });
+                  await copyRecursive(srcPath, destPath);
+                } else {
+                  await fs.copyFile(srcPath, destPath);
+                }
+              }
+            };
+
+            await copyRecursive(srcPublicPath, destPublicPath);
+          } catch (error) {
+            // Public directory doesn't exist or can't be copied
+          }
+        },
+      },
+      {
         name: "html-processor",
-        generateBundle: async (options, bundle) => {
-          for (const [fileName, chunk] of Object.entries(bundle)) {
-            if (fileName.endsWith(".html") && (chunk as any).type === "asset") {
-              const assetChunk = chunk as any;
-              if (typeof assetChunk.source === "string") {
-                const dir = path.dirname(path.resolve("src/pages", fileName));
-                const processedContent = await processHtmlImports(
-                  assetChunk.source,
-                  dir
+        writeBundle: async () => {
+          const distPath = path.resolve("dist");
+
+          // Find all HTML files in the dist directory
+          const findHtmlFiles = async (
+            dir: string,
+            basePath = ""
+          ): Promise<string[]> => {
+            const files: string[] = [];
+            const items = await fs.readdir(dir, { withFileTypes: true });
+
+            for (const item of items) {
+              const fullPath = path.join(dir, item.name);
+              const relativePath = path.join(basePath, item.name);
+
+              if (item.isDirectory()) {
+                const subFiles = await findHtmlFiles(fullPath, relativePath);
+                files.push(...subFiles);
+              } else if (item.name.endsWith(".html")) {
+                files.push(relativePath);
+              }
+            }
+            return files;
+          };
+
+          try {
+            const htmlFiles = await findHtmlFiles(distPath);
+
+            for (const htmlFile of htmlFiles) {
+              const fullPath = path.join(distPath, htmlFile);
+
+              // Check if this is a file that should be moved (in src/pages structure)
+              if (htmlFile.startsWith("src/pages/")) {
+                const cleanFileName = htmlFile.replace(/^src\/pages\//, "");
+                const newPath = path.join(distPath, cleanFileName);
+
+                // Read the file, process it, and write to new location
+                const content = await fs.readFile(fullPath, "utf-8");
+                const sourceDir = path.dirname(
+                  path.resolve("src/pages", cleanFileName)
                 );
 
-                // Create clean output path (remove src/pages/ prefix)
-                const cleanFileName = fileName.replace(/^src\/pages\//, "");
+                const processedContent = await processHtmlImports(
+                  content,
+                  sourceDir
+                );
 
-                // Wrap in full HTML structure
+                // Remove any existing CSS and JS links that Vite injected
+                const cleanedContent = processedContent
+                  .replace(/<link[^>]*rel=["']stylesheet["'][^>]*>/g, "")
+                  .replace(/<script[^>]*src=[^>]*><\/script>/g, "")
+                  .trim();
+
+                // Calculate relative path to public/ directory based on directory depth
+                const pathSegments = cleanFileName.split("/");
+                const depth = pathSegments.length - 1;
+                const publicPrefix =
+                  depth > 0 ? "../".repeat(depth) + "public" : "public";
+                const stylesPath = `${publicPrefix}/styles.css`;
+                const jsPath = `${publicPrefix}/js/index.js`;
+
+                // Create full HTML with correct paths
                 const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${cleanFileName.replace(".html", "")}</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="${stylesPath}">
 </head>
 <body>
-${processedContent}
-<script type="module" src="js/index.js"></script>
+${cleanedContent}
+<script type="module" src="${jsPath}"></script>
 </body>
 </html>`;
 
-                // Remove the old entry and add with clean path
-                delete bundle[fileName];
-                bundle[cleanFileName] = {
-                  type: "asset",
-                  source: fullHtml,
-                  fileName: cleanFileName,
-                } as any;
+                // Create directory if needed
+                await fs.mkdir(path.dirname(newPath), { recursive: true });
+
+                // Write to new location
+                await fs.writeFile(newPath, fullHtml);
+
+                // Remove old file
+                await fs.unlink(fullPath);
+
+                // Remove empty directories
+                let dirToCheck = path.dirname(fullPath);
+                while (dirToCheck !== distPath) {
+                  try {
+                    const items = await fs.readdir(dirToCheck);
+                    if (items.length === 0) {
+                      await fs.rmdir(dirToCheck);
+                      dirToCheck = path.dirname(dirToCheck);
+                    } else {
+                      break;
+                    }
+                  } catch {
+                    break;
+                  }
+                }
               }
             }
+          } catch (error) {
+            console.error("Error processing HTML files:", error);
           }
         },
       },

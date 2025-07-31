@@ -157,7 +157,7 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
   if (pagesByDir[""]) {
     sectionsHtml += `
   <section>
-    <h2>📄 Root Pages</h2>
+    <!-- <h2>📄 Pages</h2> -->
     <ul>
       ${pagesByDir[""]
         .map((page) => `<li><a href="${routePrefix}/${page}">${page}</a></li>`)
@@ -244,14 +244,16 @@ function generateFullPage(pageName: string, pageContent: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${pageName}</title>
   <script type="module" src="/@vite/client"></script>
+  <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/src/styles/main.scss">
   <script type="module" src="/src/js/index.ts"></script>
+
 </head>
 <body>
  
     ${pageContent}
  
-  <a href="/" class="back-link">← Back to all pages</a>
+  <!-- <a href="/" class="back-link">← Back to all pages</a> -->
 </body>
 </html>`;
 }
