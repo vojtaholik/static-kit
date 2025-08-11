@@ -1,0 +1,9 @@
+{
+  "build": {
+    "base": "public/",
+    "output": "dist"
+  },
+  "templates": {
+    "language": "cs"
+  }
+}

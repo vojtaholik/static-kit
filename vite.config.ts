@@ -4,37 +4,69 @@ import path from "path";
 import { processHtmlImports } from "./process-html-imports.ts";
 import pagesPreview from "./vite-plugin-pages-preview.ts";
 import { optimize } from "svgo";
+import fg from "fast-glob";
+
+// Lightweight config shape for future parity with legacy gulp-config.json
+interface StaticKitConfig {
+  build?: {
+    base?: string; // e.g. "public/" or "assets/" - where built assets are served from
+    output?: string; // e.g. "dist"
+  };
+  templates?: {
+    language?: string;
+  };
+}
+
+function timeStamp() {
+  return Date.now().toString().slice(0, 10);
+}
+
+async function loadStaticKitConfig(): Promise<StaticKitConfig> {
+  const root = process.cwd();
+  const baseConfigPath = path.join(root, "static-kit.config.json");
+  const localConfigPath = path.join(root, "static-kit.local.json");
+  const result: StaticKitConfig = {};
+  try {
+    const raw = await fs.readFile(baseConfigPath, "utf8");
+    Object.assign(result, JSON.parse(raw));
+  } catch {}
+  try {
+    const rawLocal = await fs.readFile(localConfigPath, "utf8");
+    Object.assign(result, JSON.parse(rawLocal));
+  } catch {}
+  return result;
+}
+
+async function createHtaccessFile(distPath: string) {
+  await fs.writeFile(
+    path.join(distPath, ".htaccess"),
+    "DirectoryIndex index.html\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^([^.]+)$ $1.html [L]"
+  );
+}
+
+function normalizeBase(input?: string): string {
+  if (!input) return "public/";
+  let base = input.trim();
+  if (!base.endsWith("/")) base = base + "/";
+  return base;
+}
 
 async function scanDirectory(
   dir: string,
   extensions: string[]
 ): Promise<string[]> {
-  const files: string[] = [];
-
-  async function walkDir(currentDir: string, relativePath = "") {
-    try {
-      const items = await fs.readdir(currentDir, { withFileTypes: true });
-
-      for (const item of items) {
-        const fullPath = path.join(currentDir, item.name);
-        const relativeFilePath = path.join(relativePath, item.name);
-
-        if (item.isDirectory()) {
-          await walkDir(fullPath, relativeFilePath);
-        } else if (
-          item.isFile() &&
-          extensions.some((ext) => item.name.endsWith(ext))
-        ) {
-          files.push(relativeFilePath);
-        }
-      }
-    } catch (error) {
-      // Directory doesn't exist or can't be read
-    }
+  try {
+    const patterns = extensions.map((ext) => `**/*${ext}`);
+    const files = await fg(patterns, {
+      cwd: dir,
+      onlyFiles: true,
+      ignore: ["node_modules/**"],
+    });
+    return files;
+  } catch (error) {
+    // Directory doesn't exist or can't be read
+    return [];
   }
-
-  await walkDir(dir);
-  return files;
 }
 
 async function generateSvgSprite(iconsDir: string, outputPath: string) {
@@ -119,6 +151,9 @@ async function getInputEntries() {
 }
 
 export default defineConfig(async ({ command }) => {
+  const userConfig = await loadStaticKitConfig();
+  const normalizedBase = normalizeBase(userConfig.build?.base);
+
   if (command === "serve") {
     return {
       plugins: [
@@ -127,7 +162,7 @@ export default defineConfig(async ({ command }) => {
           name: "svg-sprite-dev",
           configureServer(server) {
             // Generate sprite on server start
-            generateSvgSprite("src/icons", "public/sprite.svg");
+            generateSvgSprite("src/icons", "public/images/sprite.svg");
 
             // Watch for changes in icons directory
             server.watcher.add("src/icons/**/*.svg");
@@ -171,7 +206,7 @@ export default defineConfig(async ({ command }) => {
 
   return {
     build: {
-      outDir: "dist",
+      outDir: userConfig.build?.output || "dist",
       emptyOutDir: true,
       cssCodeSplit: false, // Single CSS file
       rollupOptions: {
@@ -185,10 +220,11 @@ export default defineConfig(async ({ command }) => {
           },
           assetFileNames: (assetInfo) => {
             if (assetInfo.name?.endsWith(".css")) {
-              return "public/styles.css";
+              return "public/css/styles.css";
             }
             if (assetInfo.name === "sprite.svg") {
-              return "sprite.svg";
+              // Ensure sprite lands under public if emitted by Rollup
+              return "public/images/sprite.svg";
             }
             return "public/assets/[name]-[hash][extname]";
           },
@@ -201,7 +237,16 @@ export default defineConfig(async ({ command }) => {
         name: "svg-sprite-build",
         buildStart() {
           // Generate sprite at build start
-          return generateSvgSprite("src/icons", "dist/sprite.svg");
+          return generateSvgSprite(
+            "src/icons",
+            `dist/${normalizedBase}images/sprite.svg`
+          );
+        },
+      },
+      {
+        name: "create-htaccess-file",
+        writeBundle: async () => {
+          await createHtaccessFile("dist");
         },
       },
       {
@@ -209,27 +254,26 @@ export default defineConfig(async ({ command }) => {
         writeBundle: async () => {
           try {
             const srcPublicPath = path.resolve("public");
-            const destPublicPath = path.resolve("dist/public");
+            const destPublicPath = path.resolve(`dist/${normalizedBase}`);
 
             // Create dist/public directory
             await fs.mkdir(destPublicPath, { recursive: true });
 
-            // Copy files from public/ to dist/public/
-            const copyRecursive = async (src: string, dest: string) => {
-              const items = await fs.readdir(src, { withFileTypes: true });
-              for (const item of items) {
-                const srcPath = path.join(src, item.name);
-                const destPath = path.join(dest, item.name);
-                if (item.isDirectory()) {
-                  await fs.mkdir(destPath, { recursive: true });
-                  await copyRecursive(srcPath, destPath);
-                } else {
-                  await fs.copyFile(srcPath, destPath);
-                }
-              }
-            };
+            // Copy files from public/ to dist/public/ using fast-glob
+            const allFiles = await fg("**/*", {
+              cwd: srcPublicPath,
+              onlyFiles: true,
+              dot: true,
+            });
 
-            await copyRecursive(srcPublicPath, destPublicPath);
+            for (const file of allFiles) {
+              const srcPath = path.join(srcPublicPath, file);
+              const destPath = path.join(destPublicPath, file);
+
+              // Ensure destination directory exists
+              await fs.mkdir(path.dirname(destPath), { recursive: true });
+              await fs.copyFile(srcPath, destPath);
+            }
           } catch (error) {
             // Public directory doesn't exist or can't be copied
           }
@@ -240,26 +284,16 @@ export default defineConfig(async ({ command }) => {
         writeBundle: async () => {
           const distPath = path.resolve("dist");
 
-          // Find all HTML files in the dist directory
-          const findHtmlFiles = async (
-            dir: string,
-            basePath = ""
-          ): Promise<string[]> => {
-            const files: string[] = [];
-            const items = await fs.readdir(dir, { withFileTypes: true });
-
-            for (const item of items) {
-              const fullPath = path.join(dir, item.name);
-              const relativePath = path.join(basePath, item.name);
-
-              if (item.isDirectory()) {
-                const subFiles = await findHtmlFiles(fullPath, relativePath);
-                files.push(...subFiles);
-              } else if (item.name.endsWith(".html")) {
-                files.push(relativePath);
-              }
+          // Find all HTML files in the dist directory using fast-glob
+          const findHtmlFiles = async (dir: string): Promise<string[]> => {
+            try {
+              return await fg("**/*.html", {
+                cwd: dir,
+                onlyFiles: true,
+              });
+            } catch (error) {
+              return [];
             }
-            return files;
           };
 
           try {
@@ -288,23 +322,24 @@ export default defineConfig(async ({ command }) => {
                 const cleanedContent = processedContent
                   .replace(/<link[^>]*rel=["']stylesheet["'][^>]*>/g, "")
                   .replace(/<script[^>]*src=[^>]*><\/script>/g, "")
-                  .replace(
-                    /<use href="\/sprite.svg/g,
-                    '<use href="/public/sprite.svg'
-                  )
+                  .replace(/<use href=\"\/sprite.svg/g, () => {
+                    return `<use href=\"${normalizedBase}images/sprite.svg\?v=${timeStamp()}`;
+                  })
                   .trim();
 
-                // Calculate relative path to public/ directory based on directory depth
+                // Calculate asset paths based on page depth and base config
                 const pathSegments = cleanFileName.split("/");
                 const depth = pathSegments.length - 1;
-                const publicPrefix =
-                  depth > 0 ? "../".repeat(depth) + "public" : "public";
-                const stylesPath = `${publicPrefix}/styles.css`;
-                const jsPath = `${publicPrefix}/js/index.js`;
+
+                // For relative paths, go up directories then into configured base
+                const relativePath = depth > 0 ? "../".repeat(depth) : "";
+
+                const stylesPath = `${normalizedBase}css/styles.css?v=${timeStamp()}`;
+                const jsPath = `${normalizedBase}js/index.js?v=${timeStamp()}`;
 
                 // Create full HTML with correct paths
                 const fullHtml = `<!DOCTYPE html>
-<html lang="en">
+<html lang="${userConfig.templates?.language || "en"}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

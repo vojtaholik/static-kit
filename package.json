@@ -6,16 +6,23 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:zip": "npm run build && node -p \"require('child_process').execSync(process.platform==='win32'?'powershell Compress-Archive -Path dist/* -DestinationPath static-kit-dist.zip -Force':'cd dist && zip -r ../static-kit-dist.zip . && cd ..', {stdio:'inherit'})\"",
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.1",
     "autoprefixer": "^10.4.21",
+    "fast-glob": "^3.3.3",
+    "imagemin": "^9.0.1",
+    "imagemin-mozjpeg": "^10.0.0",
+    "imagemin-pngquant": "^10.0.0",
+    "imagemin-webp": "^8.0.0",
     "postcss": "^8.5.6",
-    "sass-embedded": "^1.89.2",
+    "postcss-sort-media-queries": "^5.2.0",
+    "sass-embedded": "^1.90.0",
     "svgo": "^4.0.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.0.4",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.1",
     "vite-plugin-svg-sprite": "^0.6.3"
   }
 }

@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { Plugin } from "vite";
+import fg from "fast-glob";
 import { processHtmlImports } from "./process-html-imports.ts";
 
 interface PagesPreviewOptions {
@@ -106,30 +107,19 @@ export default function pagesPreview(
 }
 
 async function scanPagesDirectory(pagesDir: string): Promise<string[]> {
-  const pages: string[] = [];
-
-  async function walkDir(currentDir: string, relativePath = "") {
-    try {
-      const items = await fs.readdir(currentDir, { withFileTypes: true });
-
-      for (const item of items) {
-        const fullPath = path.join(currentDir, item.name);
-        const relativeFilePath = path.join(relativePath, item.name);
-
-        if (item.isDirectory()) {
-          await walkDir(fullPath, relativeFilePath);
-        } else if (item.isFile() && item.name.endsWith(".html")) {
-          const pageName = relativeFilePath.replace(".html", "");
-          pages.push(pageName);
-        }
-      }
-    } catch (error) {
-      // Directory doesn't exist or can't be read
-    }
+  try {
+    const htmlFiles = await fg('**/*.html', {
+      cwd: pagesDir,
+      onlyFiles: true,
+      ignore: ['node_modules/**']
+    });
+    
+    const pages = htmlFiles.map(file => file.replace('.html', ''));
+    return pages.sort();
+  } catch (error) {
+    // Directory doesn't exist or can't be read
+    return [];
   }
-
-  await walkDir(pagesDir);
-  return pages.sort();
 }
 
 function generatePagesIndex(pages: string[], routePrefix: string): string {
