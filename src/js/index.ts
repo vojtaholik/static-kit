@@ -1,3 +1,3 @@
-import "./test.ts";
+import "./contact-form.ts";
 
 export function init() {}

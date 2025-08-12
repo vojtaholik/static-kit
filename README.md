@@ -287,10 +287,15 @@ Perfect for marketing sites, portfolios, documentation, or any project where you
    });
    ```
 
-2. **Include it in your page**:
-   ```html
-   <script src="/js/contact-form.js"></script>
+2. **Import it in `src/js/index.ts`**:
+
+   ```typescript
+   import "./contact-form.ts";
+
+   export function init() {}
    ```
+
+   The `index.js` file is automatically included in every page - no manual script tags needed!
 
 ### Using SVG Icons
 
