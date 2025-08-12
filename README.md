@@ -113,6 +113,30 @@ public/              # Static assets (copied to dist)
 └── favicon.ico
 ```
 
+## ⚙️ Configuration
+
+Static Kit uses `static-kit.config.json` for build customization:
+
+```json
+{
+  "build": {
+    "base": "public/", // Where assets are served from in build output
+    "output": "dist" // Build output directory
+  },
+  "templates": {
+    "language": "en" // HTML lang attribute (defaults to "en")
+  }
+}
+```
+
+### Configuration Options
+
+- **`build.base`** - Controls where assets are placed in the build output (default: `"public/"`)
+- **`build.output`** - Build output directory (default: `"dist"`)
+- **`templates.language`** - HTML lang attribute for generated pages (default: `"en"`)
+
+You can also create `static-kit.local.json` for local-only config that won't be committed to git.
+
 ## 📄 HTML Imports & Components
 
 Use HTML imports to compose templates and reuse components:
@@ -200,23 +224,12 @@ Perfect for marketing sites, portfolios, documentation, or any project where you
 1. **Create your main page** (`src/pages/index.html`):
 
    ```html
-   <!DOCTYPE html>
-   <html lang="en">
-     <head>
-       <meta charset="UTF-8" />
-       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-       <title>My Awesome Site</title>
-       <link rel="stylesheet" href="/styles.css" />
-     </head>
-     <body>
-       <!-- @import: @components/header.html -->
-       <main>
-         <h1>Welcome to my site!</h1>
-         <p>This is built with Static Kit.</p>
-       </main>
-       <!-- @import: @components/footer.html -->
-     </body>
-   </html>
+   <!-- @import: @components/header.html -->
+   <main>
+     <h1>Welcome to my site!</h1>
+     <p>This is built with Static Kit.</p>
+   </main>
+   <!-- @import: @components/footer.html -->
    ```
 
 2. **Create a header component** (`src/components/header.html`):
