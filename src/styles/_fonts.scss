@@ -1,0 +1,143 @@
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_900_normal.woff") format("woff"),
+    url("/fonts/larken_900_normal.woff2") format("woff2"),
+    url("/fonts/larken_900_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_900_italic.woff") format("woff"),
+    url("/fonts/larken_900_italic.woff2") format("woff2"),
+    url("/fonts/larken_900_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_700_normal.woff") format("woff"),
+    url("/fonts/larken_700_normal.woff2") format("woff2"),
+    url("/fonts/larken_700_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_700_italic.woff") format("woff"),
+    url("/fonts/larken_700_italic.woff2") format("woff2"),
+    url("/fonts/larken_700_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 700;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_800_normal.woff") format("woff"),
+    url("/fonts/larken_800_normal.woff2") format("woff2"),
+    url("/fonts/larken_800_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_800_italic.woff") format("woff"),
+    url("/fonts/larken_800_italic.woff2") format("woff2"),
+    url("/fonts/larken_800_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_400_italic.woff") format("woff"),
+    url("/fonts/larken_400_italic.woff2") format("woff2"),
+    url("/fonts/larken_400_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 400;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_300_normal.woff") format("woff"),
+    url("/fonts/larken_300_normal.woff2") format("woff2"),
+    url("/fonts/larken_300_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_300_italic.woff") format("woff"),
+    url("/fonts/larken_300_italic.woff2") format("woff2"),
+    url("/fonts/larken_300_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 300;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_500_normal.woff") format("woff"),
+    url("/fonts/larken_500_normal.woff2") format("woff2"),
+    url("/fonts/larken_500_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_500_italic.woff") format("woff"),
+    url("/fonts/larken_500_italic.woff2") format("woff2"),
+    url("/fonts/larken_500_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 500;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_400_normal.woff") format("woff"),
+    url("/fonts/larken_400_normal.woff2") format("woff2"),
+    url("/fonts/larken_400_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_100_normal.woff") format("woff"),
+    url("/fonts/larken_100_normal.woff2") format("woff2"),
+    url("/fonts/larken_100_normal.otf") format("opentype");
+  font-display: auto;
+  font-style: normal;
+  font-weight: 100;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "larken";
+  src: url("/fonts/larken_100_italic.woff") format("woff"),
+    url("/fonts/larken_100_italic.woff2") format("woff2"),
+    url("/fonts/larken_100_italic.otf") format("opentype");
+  font-display: auto;
+  font-style: italic;
+  font-weight: 100;
+  font-stretch: normal;
+}
+.tk-larken {
+  font-family: "larken", serif;
+}

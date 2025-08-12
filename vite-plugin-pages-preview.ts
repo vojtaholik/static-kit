@@ -6,20 +6,29 @@ import { processHtmlImports } from "./process-html-imports.ts";
 
 interface PagesPreviewOptions {
   pagesDir?: string;
+  componentsDir?: string;
   routePrefix?: string;
+  componentsRoutePrefix?: string;
 }
 
 export default function pagesPreview(
   options: PagesPreviewOptions = {}
 ): Plugin {
-  const { pagesDir = "src/pages", routePrefix = "/pages" } = options;
+  const {
+    pagesDir = "src/pages",
+    componentsDir = "src/components",
+    routePrefix = "/pages",
+    componentsRoutePrefix = "/components",
+  } = options;
 
   return {
     name: "vite-pages-preview",
     configureServer(server) {
-      // Watch the pages directory for changes and force browser reload
+      // Watch the pages and components directories for changes and force browser reload
       const pagesPath = path.resolve(pagesDir);
+      const componentsPath = path.resolve(componentsDir);
       server.watcher.add(pagesPath);
+      server.watcher.add(componentsPath);
 
       const reloadBrowser = () => {
         // Force a hard refresh of the browser
@@ -34,28 +43,36 @@ export default function pagesPreview(
       };
 
       server.watcher.on("change", (filePath) => {
-        if (path.resolve(filePath).startsWith(pagesPath)) {
+        const resolvedPath = path.resolve(filePath);
+        if (
+          resolvedPath.startsWith(pagesPath) ||
+          resolvedPath.startsWith(componentsPath)
+        ) {
           console.log(`[pages-preview] File changed: ${filePath}`);
           reloadBrowser();
         }
       });
 
       server.watcher.on("add", (filePath) => {
+        const resolvedPath = path.resolve(filePath);
         if (
-          path.resolve(filePath).startsWith(pagesPath) &&
+          (resolvedPath.startsWith(pagesPath) ||
+            resolvedPath.startsWith(componentsPath)) &&
           filePath.endsWith(".html")
         ) {
-          console.log(`[pages-preview] Page added: ${filePath}`);
+          console.log(`[pages-preview] File added: ${filePath}`);
           reloadBrowser();
         }
       });
 
       server.watcher.on("unlink", (filePath) => {
+        const resolvedPath = path.resolve(filePath);
         if (
-          path.resolve(filePath).startsWith(pagesPath) &&
+          (resolvedPath.startsWith(pagesPath) ||
+            resolvedPath.startsWith(componentsPath)) &&
           filePath.endsWith(".html")
         ) {
-          console.log(`[pages-preview] Page deleted: ${filePath}`);
+          console.log(`[pages-preview] File deleted: ${filePath}`);
           reloadBrowser();
         }
       });
@@ -66,7 +83,13 @@ export default function pagesPreview(
         // Handle preview index route
         if (url === `/`) {
           const pages = await scanPagesDirectory(pagesDir);
-          const indexHtml = generatePagesIndex(pages, routePrefix);
+          const components = await scanPagesDirectory(componentsDir);
+          const indexHtml = generatePagesIndex(
+            pages,
+            components,
+            routePrefix,
+            componentsRoutePrefix
+          );
 
           res.setHeader("Content-Type", "text/html");
           res.end(indexHtml);
@@ -100,6 +123,42 @@ export default function pagesPreview(
           }
         }
 
+        // Handle individual component routes
+        if (
+          url?.startsWith(`${componentsRoutePrefix}/`) &&
+          url !== `${componentsRoutePrefix}/`
+        ) {
+          const componentName = url
+            .replace(`${componentsRoutePrefix}/`, "")
+            .replace(/\/$/, "");
+          const componentFile = path.join(
+            componentsDir,
+            `${componentName}.html`
+          );
+
+          try {
+            const rawComponentContent = await fs.readFile(
+              componentFile,
+              "utf-8"
+            );
+            // Process HTML imports before generating full page
+            const processedComponentContent = await processHtmlImports(
+              rawComponentContent,
+              path.dirname(componentFile)
+            );
+            const fullPageHtml = generateFullPage(
+              `component: ${componentName}`,
+              processedComponentContent
+            );
+
+            res.setHeader("Content-Type", "text/html");
+            res.end(fullPageHtml);
+            return;
+          } catch (error) {
+            // Component not found, continue to next middleware
+          }
+        }
+
         next();
       });
     },
@@ -108,13 +167,13 @@ export default function pagesPreview(
 
 async function scanPagesDirectory(pagesDir: string): Promise<string[]> {
   try {
-    const htmlFiles = await fg('**/*.html', {
+    const htmlFiles = await fg("**/*.html", {
       cwd: pagesDir,
       onlyFiles: true,
-      ignore: ['node_modules/**']
+      ignore: ["node_modules/**"],
     });
-    
-    const pages = htmlFiles.map(file => file.replace('.html', ''));
+
+    const pages = htmlFiles.map((file) => file.replace(".html", ""));
     return pages.sort();
   } catch (error) {
     // Directory doesn't exist or can't be read
@@ -122,9 +181,15 @@ async function scanPagesDirectory(pagesDir: string): Promise<string[]> {
   }
 }
 
-function generatePagesIndex(pages: string[], routePrefix: string): string {
+function generatePagesIndex(
+  pages: string[],
+  components: string[],
+  routePrefix: string,
+  componentsRoutePrefix: string
+): string {
   // Group pages by directory
   const pagesByDir: Record<string, string[]> = {};
+  const componentsByDir: Record<string, string[]> = {};
 
   for (const page of pages) {
     const parts = page.split(path.sep);
@@ -140,6 +205,20 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
     }
   }
 
+  for (const component of components) {
+    const parts = component.split(path.sep);
+    if (parts.length === 1) {
+      // Root level component
+      if (!componentsByDir[""]) componentsByDir[""] = [];
+      componentsByDir[""].push(component);
+    } else {
+      // Nested component
+      const dir = parts.slice(0, -1).join("/");
+      if (!componentsByDir[dir]) componentsByDir[dir] = [];
+      componentsByDir[dir].push(component);
+    }
+  }
+
   // Generate HTML sections
   let sectionsHtml = "";
 
@@ -147,7 +226,7 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
   if (pagesByDir[""]) {
     sectionsHtml += `
   <section>
-    <!-- <h2>📄 Pages</h2> -->
+    <h2>📄 Pages</h2>
     <ul>
       ${pagesByDir[""]
         .map((page) => `<li><a href="${routePrefix}/${page}">${page}</a></li>`)
@@ -157,13 +236,13 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
   }
 
   // Then subdirectory pages
-  const sortedDirs = Object.keys(pagesByDir)
+  const sortedPageDirs = Object.keys(pagesByDir)
     .filter((dir) => dir !== "")
     .sort();
-  for (const dir of sortedDirs) {
+  for (const dir of sortedPageDirs) {
     sectionsHtml += `
   <section>
-    <h2>📁 ${dir}/</h2>
+    <h2>📁 pages/${dir}/</h2>
     <ul>
       ${pagesByDir[dir]
         .map((page) => {
@@ -175,12 +254,47 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
   </section>`;
   }
 
+  // Root components
+  if (componentsByDir[""]) {
+    sectionsHtml += `
+  <section>
+    <h2>🧩 Components</h2>
+    <ul>
+      ${componentsByDir[""]
+        .map(
+          (component) =>
+            `<li><a href="${componentsRoutePrefix}/${component}">${component}</a></li>`
+        )
+        .join("\n      ")}
+    </ul>
+  </section>`;
+  }
+
+  // Then subdirectory components
+  const sortedComponentDirs = Object.keys(componentsByDir)
+    .filter((dir) => dir !== "")
+    .sort();
+  for (const dir of sortedComponentDirs) {
+    sectionsHtml += `
+  <section>
+    <h2>📁 components/${dir}/</h2>
+    <ul>
+      ${componentsByDir[dir]
+        .map((component) => {
+          const fileName = component.split("/").pop();
+          return `<li><a href="${componentsRoutePrefix}/${component}">${fileName}</a></li>`;
+        })
+        .join("\n      ")}
+    </ul>
+  </section>`;
+  }
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pages Preview</title>
+  <title>Pages & Components Preview</title>
   <script type="module" src="/@vite/client"></script>
   <link rel="stylesheet" href="/style.css">
   <style>
@@ -219,8 +333,8 @@ function generatePagesIndex(pages: string[], routePrefix: string): string {
   </style>
 </head>
 <body>
-  <h1>📄 Pages Preview</h1>
-  <p>Available pages in your file system:</p>
+  <h1>📄 Pages & Components Preview</h1>
+  <p>Available pages and components in your file system:</p>
   ${sectionsHtml}
 </body>
 </html>`;

@@ -325,6 +325,17 @@ export default defineConfig(async ({ command }) => {
                   .replace(/<use href=\"\/sprite.svg/g, () => {
                     return `<use href=\"${normalizedBase}images/sprite.svg\?v=${timeStamp()}`;
                   })
+                  // Normalize asset paths: Convert absolute paths to use configured base
+                  // Transform /public/images/... → public/images/... (based on normalizedBase)
+                  // Transform /images/... → public/images/... (shorthand syntax)
+                  // This ensures all asset references work with the custom build structure
+                  .replace(/src="\/public\//g, `src="${normalizedBase}`)
+                  .replace(/href="\/public\//g, `href="${normalizedBase}`)
+                  .replace(/src="\/images\//g, `src="${normalizedBase}images/`)
+                  .replace(
+                    /href="\/images\//g,
+                    `href="${normalizedBase}images/`
+                  )
                   .trim();
 
                 // Calculate asset paths based on page depth and base config

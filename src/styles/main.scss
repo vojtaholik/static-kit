@@ -1,4 +1,7 @@
 @use "icons";
+@use "fonts";
+@use "theme";
+@use "normalize";
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -18,4 +21,126 @@
 .red-text {
   color: red;
   font-weight: bold;
+}
+
+.hero-content {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+}
+
+.hero-content-inner {
+  padding: clamp(2rem, 5rem + 2vw, 8rem) clamp(1rem, 3rem + 5vw, 10rem);
+  width: 100%;
+  gap: 5vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: start;
+  h1 {
+    font-family: "larken", serif;
+    font-size: 6rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--color-muted);
+    max-width: 40ch;
+  }
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.primary-navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(1rem, 2rem + 1vw, 3rem) clamp(1rem, 3rem + 5vw, 10rem);
+
+  ul {
+    display: flex;
+    gap: 2vw;
+    li {
+      font-size: 1.2rem;
+      font-weight: 400;
+      list-style: none;
+      a {
+        text-decoration: none;
+        color: var(--color-foreground);
+      }
+    }
+  }
+
+  .logo {
+    font-family: "larken", serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-foreground);
+  }
+}
+
+.hero-products {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  &__product {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+
+    border-radius: 112px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(136, 83, 61, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 0 3rem 0 2rem;
+
+    img {
+      width: 112px;
+      height: 158px;
+    }
+    div {
+      h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+      p {
+        color: var(--color-muted);
+      }
+    }
+    &__price {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    &__price-container {
+      padding-top: 0.5rem;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    &__original-price {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      text-decoration: line-through;
+    }
+  }
 }
