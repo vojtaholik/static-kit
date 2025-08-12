@@ -162,16 +162,20 @@ This makes it easy to develop and test components in isolation while seeing the 
 
 ```
 dist/
-├── index.html       # Clean HTML files
-├── blog/
-│   └── post.html
-├── styles.css       # Single compiled CSS
-├── js/
-│   ├── index.js     # Individual JS files
-│   └── components/
-│       └── modal.js
-└── assets/          # Static assets
-    └── images/
+├── index.html           # Your HTML pages (clean, processed)
+├── icons-test.html      # Additional pages from src/pages/
+├── .htaccess           # Server configuration
+└── public/             # All assets organized under public/
+    ├── css/
+    │   └── styles.css  # Compiled SCSS
+    ├── js/
+    │   ├── index.js    # Your TypeScript compiled to JS
+    │   └── test.js
+    ├── images/         # Static images from public/images/
+    │   ├── hero.jpg
+    │   └── sprite.svg
+    ├── fonts/          # Font files from public/fonts/
+    └── favicon.ico     # Static assets from public/
 ```
 
 ## 🔥 Why This Framework?
@@ -283,91 +287,5 @@ Perfect for marketing sites, portfolios, documentation, or any project where you
    <svg><use href="/sprite.svg#ui-arrow"></use></svg>
    <svg><use href="/sprite.svg#ui-menu"></use></svg>
    ```
-
-## 🔧 Troubleshooting
-
-### Common Issues for Beginners
-
-**"I can't see my changes"**
-
-- Make sure the dev server is running (`pnpm dev`)
-- Check the browser console for errors
-- Try refreshing the page manually
-
-**"My import isn't working"**
-
-- Check the file path in your import comment
-- Make sure the file exists in `src/components/`
-- Use `@components/filename.html` for cleaner imports
-
-**"My styles aren't applying"**
-
-- Ensure you're editing `src/styles/main.scss`
-- Check that `<link rel="stylesheet" href="/styles.css">` is in your HTML `<head>`
-- Look for SCSS syntax errors in the terminal
-
-**"Port 5173 is already in use"**
-
-- Kill other processes using that port, or
-- Vite will automatically try the next available port (5174, 5175, etc.)
-
-**"pnpm command not found"**
-
-- Install pnpm globally: `npm install -g pnpm`
-- Or use npm instead: `npm install` and `npm run dev`
-
-### Getting Help
-
-- Check the terminal output for error messages
-- Look at the browser's developer console (F12)
-- Most issues are simple typos in file paths or missing files
-
-### Development Tips
-
-- Use your browser's developer tools to inspect elements and test CSS
-- The preview page at `http://localhost:5173` shows all your pages and components
-- Changes save automatically, but you might need to refresh for some changes
-- Keep the terminal open to see build errors and warnings
-
-## 🎓 What's Next?
-
-Now that you have the basics down, here's how to level up:
-
-### 1. Learn the File Structure
-
-- Explore `src/pages/` - Each HTML file becomes a page
-- Check out `src/components/` - Reusable pieces of HTML
-- Look at `src/styles/main.scss` - Your main stylesheet
-- Peek at `src/js/` - Where your TypeScript/JavaScript lives
-
-### 2. Master HTML Imports
-
-- Start with simple components (buttons, headers, footers)
-- Use `@components/` prefix for cleaner imports
-- Create nested component folders for organization
-
-### 3. Style Your Site
-
-- Edit `src/styles/main.scss` for global styles
-- Learn basic SCSS syntax (variables, nesting, mixins)
-- Use your browser's developer tools to experiment
-
-### 4. Add Interactivity
-
-- Create `.ts` files in `src/js/` for functionality
-- Import them in your HTML with `<script>` tags
-- Start simple: form validation, button clicks, animations
-
-### 5. Deploy Your Site
-
-- Run `pnpm build` to create the `dist/` folder
-- Upload the `dist/` folder to any web host
-- Works with Netlify, Vercel, GitHub Pages, or any static host
-
-### Learning Resources
-
-- [MDN Web Docs](https://developer.mozilla.org) - HTML, CSS, JavaScript reference
-- [SCSS Guide](https://sass-lang.com/guide) - Learn SCSS syntax
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - If you want to use TypeScript features
 
 Happy building! 🚀
