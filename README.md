@@ -16,7 +16,7 @@ Before you start, make sure you have these installed on your machine:
 1. **Clone or download this project**
 
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/vojtaholik/static-kit.git
    cd static-kit
    ```
 
