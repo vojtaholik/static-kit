@@ -378,7 +378,7 @@ p, h1, h2, h3, h4, h5, h6 {
   const mainScssPath = path.join(projectPath, "src", "styles", "main.scss");
   try {
     const mainScss = await fs.readFile(mainScssPath, "utf-8");
-    const updatedScss = `@import "reset";\n\n${mainScss}`;
+    const updatedScss = `@use "reset";\n\n${mainScss}`;
     await fs.writeFile(mainScssPath, updatedScss);
   } catch {
     // main.scss doesn't exist or can't be read
@@ -448,7 +448,7 @@ async function addDesignTokens(projectPath: string) {
   const mainScssPath = path.join(projectPath, "src", "styles", "main.scss");
   try {
     const mainScss = await fs.readFile(mainScssPath, "utf-8");
-    const updatedScss = `@import "tokens";\n\n${mainScss}`;
+    const updatedScss = `@use "tokens";\n\n${mainScss}`;
     await fs.writeFile(mainScssPath, updatedScss);
   } catch {
     // main.scss doesn't exist or can't be read
