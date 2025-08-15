@@ -1,0 +1,22 @@
+---
+description: HTML pages structure and import conventions
+globs: ["src/pages/**/*.html"]
+alwaysApply: false
+---
+
+# HTML Pages
+
+HTML pages go in `src/pages/` directory. Use `@components/` prefix for imports, not relative paths.
+
+## Import Examples
+
+```html
+<!-- @import: @components/header.html -->
+<!-- @import: @components/footer.html -->
+```
+
+## Guidelines
+
+- Place all pages under `src/pages/` with correct folder structure
+- Use `@components/` prefix for component imports
+- Avoid relative imports unless absolutely necessary

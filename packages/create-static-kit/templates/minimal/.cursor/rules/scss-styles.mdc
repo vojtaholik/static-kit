@@ -1,0 +1,22 @@
+---
+description: SCSS styling conventions and import structure
+globs: ["src/styles/**/*.scss"]
+alwaysApply: false
+---
+
+# SCSS Styles
+
+SCSS entrypoint is `src/styles/main.scss`. Component styles should be imported into main.scss.
+
+## Import Structure
+
+```scss
+@import "./components/button.scss";
+```
+
+## Guidelines
+
+- Main entrypoint: `src/styles/main.scss`
+- Import component styles into main.scss
+- Follow modular SCSS architecture
+- Keep component styles organized and focused

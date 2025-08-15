@@ -1,0 +1,62 @@
+{
+  "name": "@vojtaholik/static-kit-core",
+  "version": "1.0.0",
+  "description": "Core library for Static Kit - simple static site framework",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite-config.d.ts",
+      "import": "./dist/vite-config.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "templates/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "svgo": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.1"
+  },
+  "keywords": [
+    "static-site",
+    "vite",
+    "html",
+    "scss",
+    "typescript",
+    "components"
+  ],
+  "author": "Vojta Holik <vojta@holik.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vojtaholik/static-kit.git",
+    "directory": "packages/static-kit-core"
+  },
+  "homepage": "https://github.com/vojtaholik/static-kit#readme",
+  "bugs": {
+    "url": "https://github.com/vojtaholik/static-kit/issues"
+  }
+}

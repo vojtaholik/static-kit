@@ -1,0 +1,20 @@
+---
+description: Static Kit configuration and build settings
+globs: ["static-kit.config.json", "static-kit.local.json"]
+alwaysApply: false
+---
+
+# Configuration
+
+Global build configuration in `static-kit.config.json`. Local overrides go in `static-kit.local.json` (ignored by git).
+
+## Configuration Files
+
+- `static-kit.config.json` - Global build configuration
+- `static-kit.local.json` - Local overrides (git ignored)
+
+## Guidelines
+
+- Keep global settings in main config
+- Use local config for environment-specific overrides
+- Local config is automatically ignored by git

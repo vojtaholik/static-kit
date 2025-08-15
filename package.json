@@ -1,13 +1,20 @@
 {
-  "name": "static-kit",
+  "name": "@vojtaholik/static-kit-root",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "build:zip": "npm run build && node -p \"require('child_process').execSync(process.platform==='win32'?'powershell Compress-Archive -Path dist/* -DestinationPath static-kit-dist.zip -Force':'cd dist && zip -r ../static-kit-dist.zip . && cd ..', {stdio:'inherit'})\"",
-    "preview": "vite preview"
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @vojtaholik/static-kit-core build",
+    "build:cli": "pnpm --filter @vojtaholik/create-static-kit build",
+    "dev": "pnpm -r --parallel dev",
+    "clean": "pnpm -r clean",
+    "test:cli": "cd packages/create-static-kit && node bin/create-static-kit.js",
+    "release": "node scripts/release.js",
+    "release:patch": "npm run release patch",
+    "release:minor": "npm run release minor",
+    "release:major": "npm run release major",
+    "version:check": "node scripts/version-check.js"
   },
   "devDependencies": {
     "@types/node": "^24.2.1",

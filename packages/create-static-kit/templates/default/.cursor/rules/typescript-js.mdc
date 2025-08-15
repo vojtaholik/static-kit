@@ -1,0 +1,23 @@
+---
+description: TypeScript and JavaScript module conventions
+globs: ["src/js/**/*.ts", "src/js/**/*.js"]
+alwaysApply: false
+---
+
+# TypeScript/JavaScript Modules
+
+Component-specific scripts go in `src/js/components/`. Keep modules isolated with no bundler-only imports.
+
+## File Organization
+
+```
+src/js/components/modal.ts
+```
+
+## Guidelines
+
+- Place component scripts in `src/js/components/`
+- Keep modules isolated and modular
+- Avoid bundler-only patterns
+- Use effective TypeScript for library-style code
+- Maintain clean module boundaries

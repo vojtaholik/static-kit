@@ -1,0 +1,22 @@
+---
+description: Figma MCP integration and design-to-dev workflow
+globs: ["**/*.html"]
+alwaysApply: false
+---
+
+# Figma Integration
+
+For Figma MCP integration, component and page file names should match Figma node/component names for proper mapping.
+
+## Design-to-Dev Workflow
+
+- Component/page file names should match Figma node names
+- Follow Static Kit conventions when generating from Figma designs
+- Maintain consistent naming between design and code
+- Use proper file placement per Static Kit rules
+
+## Guidelines
+
+- Generate HTML/SCSS from Figma following Static Kit conventions
+- Ensure proper file placement in src/ directories
+- Maintain design-code consistency through naming

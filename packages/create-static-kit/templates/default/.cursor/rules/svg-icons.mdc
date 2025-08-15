@@ -1,0 +1,22 @@
+---
+description: SVG icon naming and sprite conventions
+globs: ["src/icons/**/*.svg"]
+alwaysApply: false
+---
+
+# SVG Icons
+
+SVG icons should use lowercase-kebab-case naming. Folder structure defines sprite ID namespace.
+
+## Naming Convention
+
+```
+src/icons/ui/arrow.svg → <use href="/sprite.svg#ui-arrow"></use>
+```
+
+## Guidelines
+
+- Use lowercase kebab-case for icon names
+- Folder structure creates namespace (ui/, social/, etc.)
+- Icons are compiled into sprite.svg
+- Reference using sprite ID format: `namespace-iconname`

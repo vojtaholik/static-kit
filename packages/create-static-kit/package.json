@@ -1,0 +1,48 @@
+{
+  "name": "@vojtaholik/create-static-kit",
+  "version": "1.0.0",
+  "description": "CLI tool to create new Static Kit projects",
+  "type": "module",
+  "bin": {
+    "create-static-kit": "./bin/create-static-kit.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "templates/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@vojtaholik/static-kit-core": "^1.0.0",
+    "prompts": "^2.4.2",
+    "kleur": "^4.1.5",
+    "fast-glob": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/prompts": "^2.4.9",
+    "typescript": "~5.9.2"
+  },
+  "keywords": [
+    "create",
+    "static-kit",
+    "cli",
+    "scaffold",
+    "template"
+  ],
+  "author": "Vojta Holik <vojta@holik.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vojtaholik/static-kit.git",
+    "directory": "packages/create-static-kit"
+  },
+  "homepage": "https://github.com/vojtaholik/static-kit#readme",
+  "bugs": {
+    "url": "https://github.com/vojtaholik/static-kit/issues"
+  }
+}

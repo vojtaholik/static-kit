@@ -1,0 +1,22 @@
+---
+description: Public assets organization and handling
+globs: ["public/**/*"]
+alwaysApply: false
+---
+
+# Public Assets
+
+Static assets copied directly to dist/ with no processing. Organize into logical folders.
+
+## Organization
+
+- `public/images/` - Image assets
+- `public/fonts/` - Font files
+- `public/` - Other static assets
+
+## Guidelines
+
+- Assets are copied as-is to dist/
+- No build-time processing
+- Organize into meaningful subdirectories
+- Reference in development as `/<filename>` (no 'public' prefix needed)

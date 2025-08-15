@@ -1,0 +1,30 @@
+---
+description: Static Kit project overview and general guidelines
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Static Kit Framework
+
+Static site framework with TypeScript, SCSS, and HTML imports. Integrated with Figma MCP for design-to-dev workflow.
+
+## Core Principles
+
+- Use `@components/` prefix for imports, not relative paths
+- Follow lowercase kebab-case naming for files
+- Keep modules isolated and modular
+- Maintain clean separation between pages, components, and styles
+
+## Git Conventions
+
+### Commit Message Conventions
+
+- `feat: new component/page`
+- `style: scss changes`
+- `fix: bugfix`
+- `design-sync: figma-linked update`
+
+### Ignored Files
+
+- `dist/` - Build output
+- `static-kit.local.json` - Local configuration overrides

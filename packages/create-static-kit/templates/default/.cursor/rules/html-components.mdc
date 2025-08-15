@@ -1,0 +1,24 @@
+---
+description: Reusable HTML components conventions
+globs: ["src/components/**/*.html"]
+alwaysApply: false
+---
+
+# HTML Components
+
+Reusable HTML components should follow specific naming and structure conventions.
+
+## File Naming
+
+- Use lowercase kebab-case for file names
+- Examples: `button.html`, `ui/card.html`
+
+## Structure Rules
+
+- No `<html>` or `<body>` tags in components
+- Keep components focused and reusable
+- Place under `src/components/` directory
+
+## Import Usage
+
+Components should be imported using `@components/` prefix in pages.
