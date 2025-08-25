@@ -52,6 +52,7 @@ export function createStaticKitConfig(
       build: {
         outDir: config.build?.output || "dist",
         emptyOutDir: true,
+        minify: false, // Disable minification for all assets
         cssCodeSplit: false, // Single CSS file
         rollupOptions: {
           input: inputEntries,
@@ -85,6 +86,7 @@ export function createStaticKitConfig(
         ...buildPlugins({
           config,
           publicDir,
+          jsDir: jsEntry,
         }),
       ],
     };

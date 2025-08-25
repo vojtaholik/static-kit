@@ -34,12 +34,8 @@ export async function getInputEntries(
   // Always include main SCSS
   entries.main = stylesEntry;
 
-  // Dynamically scan for JS/TS files (including nested)
-  const jsFiles = await scanDirectory(jsDir, [".ts", ".js"]);
-  for (const file of jsFiles) {
-    const name = file.replace(/\.(ts|js)$/, "");
-    entries[`js/${name}`] = `${jsDir}/${file}`;
-  }
+  // NOTE: JS files are now copied as static assets, not bundled through Vite
+  // This preserves their original formatting and function names
 
   // Dynamically scan for HTML pages (including nested)
   const pageFiles = await scanDirectory(pagesDir, [".html"]);

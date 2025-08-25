@@ -4,11 +4,17 @@ import type { Plugin } from "vite";
 import fg from "fast-glob";
 import { processHtmlImports } from "../utils/html-imports.js";
 import { normalizeBase, timeStamp } from "../utils/config.js";
+import {
+  compileTypeScriptFile,
+  isTypeScriptFile,
+  tsToJsPath,
+} from "../utils/typescript-compiler.js";
 import type { StaticKitConfig } from "../types.js";
 
 export interface BuildPluginsOptions {
   config: StaticKitConfig;
   publicDir?: string;
+  jsDir?: string;
 }
 
 async function createHtaccessFile(distPath: string) {
@@ -19,7 +25,7 @@ async function createHtaccessFile(distPath: string) {
 }
 
 export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
-  const { config, publicDir = "public" } = options;
+  const { config, publicDir = "public", jsDir = "src/js" } = options;
   const normalizedBase = normalizeBase(config.build?.base);
 
   return [
@@ -61,6 +67,54 @@ export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
         } catch (error) {
           // Public directory doesn't exist or can't be copied
           console.warn("Could not copy public directory:", error);
+        }
+      },
+    },
+    // Copy and compile JS/TS files without bundling
+    {
+      name: "copy-compile-js-files",
+      apply: "build",
+      writeBundle: async () => {
+        try {
+          const srcJsPath = path.resolve(jsDir);
+          const destJsPath = path.resolve(`dist/${normalizedBase}js`);
+
+          // Create dist/js directory
+          await fs.mkdir(destJsPath, { recursive: true });
+
+          // Find all JS and TS files
+          const jsFiles = await fg("**/*.{js,ts}", {
+            cwd: srcJsPath,
+            onlyFiles: true,
+          });
+
+          let compiledCount = 0;
+          let copiedCount = 0;
+
+          for (const file of jsFiles) {
+            const srcPath = path.join(srcJsPath, file);
+
+            if (isTypeScriptFile(file)) {
+              // Compile TypeScript to JavaScript
+              const jsFileName = tsToJsPath(file);
+              const destPath = path.join(destJsPath, jsFileName);
+              await compileTypeScriptFile(srcPath, destPath);
+              compiledCount++;
+            } else {
+              // Copy JavaScript files as-is
+              const destPath = path.join(destJsPath, file);
+              await fs.mkdir(path.dirname(destPath), { recursive: true });
+              await fs.copyFile(srcPath, destPath);
+              copiedCount++;
+            }
+          }
+
+          console.log(
+            `📄 Compiled ${compiledCount} TS files, copied ${copiedCount} JS files without bundling`
+          );
+        } catch (error) {
+          // JS directory doesn't exist or can't be copied
+          console.warn("Could not copy JS directory:", error);
         }
       },
     },
@@ -119,10 +173,7 @@ export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
                 .replace(/src="\/public\//g, `src="${normalizedBase}`)
                 .replace(/href="\/public\//g, `href="${normalizedBase}`)
                 .replace(/src="\/images\//g, `src="${normalizedBase}images/`)
-                .replace(
-                  /href="\/images\//g,
-                  `href="${normalizedBase}images/`
-                )
+                .replace(/href="\/images\//g, `href="${normalizedBase}images/`)
                 .trim();
 
               // Calculate asset paths based on page depth and base config
