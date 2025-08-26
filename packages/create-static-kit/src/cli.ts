@@ -9,6 +9,40 @@ import fg from "fast-glob";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Get the current version of static-kit-core dynamically
+let staticKitCoreVersion = "latest"; // Default fallback
+try {
+  // Try monorepo path first (development)
+  const monorepoPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "static-kit-core",
+    "package.json"
+  );
+  const pkgJson = JSON.parse(await fs.readFile(monorepoPath, "utf-8"));
+  staticKitCoreVersion = pkgJson.version;
+} catch {
+  try {
+    // Try installed package path (production)
+    const installedPath = path.join(
+      __dirname,
+      "..",
+      "node_modules",
+      "@vojtaholik",
+      "static-kit-core",
+      "package.json"
+    );
+    const pkgJson = JSON.parse(await fs.readFile(installedPath, "utf-8"));
+    staticKitCoreVersion = pkgJson.version;
+  } catch {
+    // Keep the default "latest" fallback
+    console.warn(
+      "Warning: Could not determine static-kit-core version, using 'latest'"
+    );
+  }
+}
+
 interface TemplateConfig {
   name: string;
   description: string;
@@ -20,6 +54,7 @@ interface CreateOptions {
   template: string;
   cssReset: boolean;
   designTokens: boolean;
+  useTailwind: boolean;
   initGit: boolean;
   includeCursorRules: boolean;
 }
@@ -124,16 +159,24 @@ async function main() {
       },
       {
         type: "confirm",
+        name: "useTailwind",
+        message: "Use Tailwind CSS v4 for styling?",
+        initial: false,
+      },
+      {
+        type: "confirm",
         name: "cssReset",
         message: "Include CSS reset?",
         initial: true,
-      },
+        skip: (prev: any) => prev.useTailwind, // Skip if using Tailwind
+      } as any,
       {
         type: "confirm",
         name: "designTokens",
         message: "Include design tokens?",
         initial: false,
-      },
+        skip: (prev: any) => prev.useTailwind, // Skip if using Tailwind
+      } as any,
       {
         type: "confirm",
         name: "includeCursorRules",
@@ -156,8 +199,9 @@ async function main() {
     const options: CreateOptions = {
       projectName: response.projectName,
       template: response.template,
-      cssReset: response.cssReset,
-      designTokens: response.designTokens,
+      cssReset: response.useTailwind ? false : response.cssReset,
+      designTokens: response.useTailwind ? false : response.designTokens,
+      useTailwind: response.useTailwind,
       includeCursorRules: response.includeCursorRules,
       initGit: response.initGit,
     };
@@ -170,6 +214,7 @@ async function main() {
       template: template || "default",
       cssReset: true,
       designTokens: false,
+      useTailwind: false,
       includeCursorRules: !noCursorRules,
       initGit: true,
     };
@@ -184,6 +229,7 @@ async function createProject(options: CreateOptions) {
     template,
     cssReset,
     designTokens,
+    useTailwind,
     includeCursorRules,
     initGit,
   } = options;
@@ -210,13 +256,13 @@ async function createProject(options: CreateOptions) {
     await copyTemplate(template, projectPath);
 
     // Generate package.json
-    await generatePackageJson(projectName, projectPath);
+    await generatePackageJson(projectName, projectPath, useTailwind);
 
     // Generate vite.config.ts
-    await generateViteConfig(projectPath);
+    await generateViteConfig(projectPath, useTailwind);
 
     // Generate static-kit.config.json
-    await generateStaticKitConfig(projectPath);
+    await generateStaticKitConfig(projectPath, useTailwind);
 
     // Conditionally add features
     if (cssReset) {
@@ -225,6 +271,10 @@ async function createProject(options: CreateOptions) {
 
     if (designTokens) {
       await addDesignTokens(projectPath);
+    }
+
+    if (useTailwind) {
+      await setupTailwindCSS(projectPath);
     }
 
     // Remove Cursor rules if not wanted
@@ -284,8 +334,12 @@ async function copyTemplate(templateName: string, projectPath: string) {
   }
 }
 
-async function generatePackageJson(projectName: string, projectPath: string) {
-  const packageJson = {
+async function generatePackageJson(
+  projectName: string,
+  projectPath: string,
+  useTailwind: boolean
+) {
+  const packageJson: any = {
     name: projectName,
     private: true,
     version: "0.0.0",
@@ -296,15 +350,24 @@ async function generatePackageJson(projectName: string, projectPath: string) {
       preview: "vite preview",
     },
     devDependencies: {
-      "@vojtaholik/static-kit-core": "^1.0.0",
+      "@vojtaholik/static-kit-core": `^${staticKitCoreVersion}`,
       "@types/node": "^24.2.1",
-      autoprefixer: "^10.4.21",
-      postcss: "^8.5.6",
-      "sass-embedded": "^1.90.0",
       typescript: "~5.9.2",
       vite: "^7.1.1",
     },
+    dependencies: {},
   };
+
+  if (useTailwind) {
+    // Tailwind CSS setup
+    packageJson.dependencies["tailwindcss"] = "^4.1.12";
+    packageJson.dependencies["@tailwindcss/vite"] = "^4.1.12";
+  } else {
+    // SCSS setup
+    packageJson.devDependencies["sass-embedded"] = "^1.90.0";
+    packageJson.devDependencies["autoprefixer"] = "^10.4.21";
+    packageJson.devDependencies["postcss"] = "^8.5.6";
+  }
 
   await fs.writeFile(
     path.join(projectPath, "package.json"),
@@ -312,15 +375,24 @@ async function generatePackageJson(projectName: string, projectPath: string) {
   );
 }
 
-async function generateViteConfig(projectPath: string) {
+async function generateViteConfig(projectPath: string, useTailwind: boolean) {
+  const stylesEntry = useTailwind
+    ? "src/styles/styles.css"
+    : "src/styles/main.scss";
   const viteConfig = `import { createStaticKitConfig } from "@vojtaholik/static-kit-core/vite";
 
-export default createStaticKitConfig();`;
+export default createStaticKitConfig({
+  useTailwind: ${useTailwind},
+  stylesEntry: "${stylesEntry}"
+});`;
 
   await fs.writeFile(path.join(projectPath, "vite.config.ts"), viteConfig);
 }
 
-async function generateStaticKitConfig(projectPath: string) {
+async function generateStaticKitConfig(
+  projectPath: string,
+  useTailwind: boolean
+) {
   const config = {
     build: {
       base: "public/",
@@ -452,6 +524,28 @@ async function addDesignTokens(projectPath: string) {
     await fs.writeFile(mainScssPath, updatedScss);
   } catch {
     // main.scss doesn't exist or can't be read
+  }
+}
+
+async function setupTailwindCSS(projectPath: string) {
+  // Create Tailwind CSS v4 setup with plain CSS
+  const tailwindSetup = `/* Tailwind CSS v4 */
+@import "tailwindcss";
+
+/* Custom styles */
+`;
+
+  // Create styles.css file (not SCSS)
+  await fs.writeFile(
+    path.join(projectPath, "src", "styles", "styles.css"),
+    tailwindSetup
+  );
+
+  // Remove main.scss if it exists (from template)
+  try {
+    await fs.unlink(path.join(projectPath, "src", "styles", "main.scss"));
+  } catch {
+    // File doesn't exist, that's fine
   }
 }
 

@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import type { UserConfig, UserConfigFnPromise } from "vite";
+import type { UserConfig, UserConfigFnPromise, Plugin } from "vite";
 import { loadStaticKitConfig, normalizeBase } from "./utils/config.js";
 import { getInputEntries } from "./utils/file-scanner.js";
 import {
@@ -20,6 +20,7 @@ export function createStaticKitConfig(
     stylesEntry = "src/styles/main.scss",
     jsEntry = "src/js",
     publicDir = "public",
+    useTailwind = false,
   } = options;
 
   return defineConfig(async ({ command }) => {
@@ -27,12 +28,28 @@ export function createStaticKitConfig(
     const config = userProvidedConfig || (await loadStaticKitConfig());
     const normalizedBase = normalizeBase(config.build?.base);
 
+    // Conditionally load Tailwind plugin
+    const tailwindPlugins: Plugin[] = [];
+    if (useTailwind) {
+      try {
+        // @ts-ignore - Dynamic import for optional dependency
+        const { default: tailwindPlugin } = await import("@tailwindcss/vite");
+        tailwindPlugins.push(tailwindPlugin());
+      } catch (e) {
+        console.warn(
+          "⚠️  @tailwindcss/vite not found. Make sure to install it if you want to use Tailwind CSS."
+        );
+      }
+    }
+
     if (command === "serve") {
       return {
         plugins: [
+          ...tailwindPlugins,
           pagesPreviewPlugin({
             pagesDir,
             componentsDir,
+            stylesEntry,
           }),
           ...svgSpritePlugin({
             iconsDir,
@@ -53,7 +70,7 @@ export function createStaticKitConfig(
         outDir: config.build?.output || "dist",
         emptyOutDir: true,
         minify: false, // Disable minification for all assets
-        cssCodeSplit: false, // Single CSS file
+        cssCodeSplit: true, // Allow CSS in entries (needed for plain CSS files)
         rollupOptions: {
           input: inputEntries,
           output: {
@@ -78,6 +95,7 @@ export function createStaticKitConfig(
       },
       publicDir: "", // Disable default public dir copying
       plugins: [
+        ...tailwindPlugins,
         ...svgSpritePlugin({
           iconsDir,
           outputPath: `dist/${normalizedBase}images/sprite.svg`,

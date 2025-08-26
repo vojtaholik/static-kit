@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite';
+import type { Plugin } from "vite";
 
 export interface StaticKitConfig {
   build?: {
@@ -18,6 +18,7 @@ export interface StaticKitOptions {
   stylesEntry?: string;
   jsEntry?: string;
   publicDir?: string;
+  useTailwind?: boolean;
 }
 
 export interface PagesPreviewOptions {
@@ -25,4 +26,5 @@ export interface PagesPreviewOptions {
   componentsDir?: string;
   routePrefix?: string;
   componentsRoutePrefix?: string;
+  stylesEntry?: string;
 }

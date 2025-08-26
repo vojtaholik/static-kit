@@ -180,7 +180,11 @@ function generatePagesIndex(
 </html>`;
 }
 
-function generateFullPage(pageName: string, pageContent: string): string {
+function generateFullPage(
+  pageName: string,
+  pageContent: string,
+  stylesEntry: string
+): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -189,7 +193,7 @@ function generateFullPage(pageName: string, pageContent: string): string {
   <title>${pageName}</title>
   <script type="module" src="/@vite/client"></script>
   <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/src/styles/main.scss">
+  <link rel="stylesheet" href="/${stylesEntry}">
   <script type="module" src="/src/js/index.ts"></script>
   <script type="module" src="/svg-sprite-hmr.ts"></script>
 
@@ -209,6 +213,7 @@ export function pagesPreviewPlugin(options: PagesPreviewOptions = {}): Plugin {
     componentsDir = "src/components",
     routePrefix = "/pages",
     componentsRoutePrefix = "/components",
+    stylesEntry = "src/styles/main.scss",
   } = options;
 
   return {
@@ -303,7 +308,8 @@ export function pagesPreviewPlugin(options: PagesPreviewOptions = {}): Plugin {
             );
             const fullPageHtml = generateFullPage(
               pageName,
-              processedPageContent
+              processedPageContent,
+              stylesEntry
             );
 
             res.setHeader("Content-Type", "text/html");
@@ -339,7 +345,8 @@ export function pagesPreviewPlugin(options: PagesPreviewOptions = {}): Plugin {
             );
             const fullPageHtml = generateFullPage(
               `component: ${componentName}`,
-              processedComponentContent
+              processedComponentContent,
+              stylesEntry
             );
 
             res.setHeader("Content-Type", "text/html");

@@ -1,4 +1,5 @@
 import fg from "fast-glob";
+import fs from "fs";
 
 /**
  * Scan directory for files with specified extensions using fast-glob
@@ -31,8 +32,13 @@ export async function getInputEntries(
 ) {
   const entries: Record<string, string> = {};
 
-  // Always include main SCSS
-  entries.main = stylesEntry;
+  // Include main styles entry (CSS or SCSS) if it exists
+  try {
+    fs.accessSync(stylesEntry);
+    entries.main = stylesEntry;
+  } catch {
+    console.warn(`⚠️  Styles entry not found: ${stylesEntry}`);
+  }
 
   // NOTE: JS files are now copied as static assets, not bundled through Vite
   // This preserves their original formatting and function names
