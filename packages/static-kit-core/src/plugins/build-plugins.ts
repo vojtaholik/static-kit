@@ -70,6 +70,48 @@ export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
         }
       },
     },
+    // Copy fonts directory
+    {
+      name: "copy-fonts-directory",
+      apply: "build",
+      writeBundle: async () => {
+        try {
+          const srcFontsPath = path.resolve("src/fonts");
+          const destFontsPath = path.resolve(`dist/${normalizedBase}fonts`);
+
+          // Check if fonts directory exists
+          try {
+            await fs.access(srcFontsPath);
+          } catch {
+            // Fonts directory doesn't exist, skip silently
+            return;
+          }
+
+          // Create dist/fonts directory
+          await fs.mkdir(destFontsPath, { recursive: true });
+
+          // Copy all files from src/fonts to dist/public/fonts using fast-glob
+          const fontFiles = await fg("**/*", {
+            cwd: srcFontsPath,
+            onlyFiles: true,
+            dot: true,
+          });
+
+          for (const file of fontFiles) {
+            const srcPath = path.join(srcFontsPath, file);
+            const destPath = path.join(destFontsPath, file);
+
+            // Ensure destination directory exists
+            await fs.mkdir(path.dirname(destPath), { recursive: true });
+            await fs.copyFile(srcPath, destPath);
+          }
+
+          console.log(`📝 Copied ${fontFiles.length} font files to dist/fonts`);
+        } catch (error) {
+          console.warn("Could not copy fonts directory:", error);
+        }
+      },
+    },
     // Copy and compile JS/TS files without bundling
     {
       name: "copy-compile-js-files",
@@ -174,6 +216,8 @@ export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
                 .replace(/href="\/public\//g, `href="${normalizedBase}`)
                 .replace(/src="\/images\//g, `src="${normalizedBase}images/`)
                 .replace(/href="\/images\//g, `href="${normalizedBase}images/`)
+                .replace(/src="\/fonts\//g, `src="${normalizedBase}fonts/`)
+                .replace(/href="\/fonts\//g, `href="${normalizedBase}fonts/`)
                 .trim();
 
               // Calculate asset paths based on page depth and base config

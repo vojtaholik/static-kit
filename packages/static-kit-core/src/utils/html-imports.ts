@@ -2,12 +2,14 @@ import fs from "fs/promises";
 import path from "path";
 
 /**
- * Process HTML imports in the given HTML string
+ * Process HTML imports in the given HTML string recursively
  * Supports both relative paths and @components/ prefix
+ * Handles nested imports within components
  */
 export async function processHtmlImports(
   html: string,
-  dir: string
+  dir: string,
+  processedFiles: Set<string> = new Set()
 ): Promise<string> {
   const importRegex = /<!--\s*@import:\s*([\w./@-]+)\s*-->/g;
 
@@ -37,10 +39,33 @@ export async function processHtmlImports(
         const filePath = path.resolve(srcDir, importPath);
 
         try {
+          // Check for circular imports
+          if (processedFiles.has(filePath)) {
+            const errorMessage = `<!-- Import Error: Circular import detected for "${match[1]}" 
+                   File: ${filePath}
+                   This file is already being processed in the import chain -->`;
+            html =
+              html.slice(0, match.index!) +
+              errorMessage +
+              html.slice(match.index! + match[0].length);
+            continue;
+          }
+
           const fileContent = await fs.readFile(filePath, "utf8");
+
+          // Add this file to the processed set and recursively process its imports
+          const newProcessedFiles = new Set(processedFiles);
+          newProcessedFiles.add(filePath);
+
+          const processedFileContent = await processHtmlImports(
+            fileContent,
+            path.dirname(filePath),
+            newProcessedFiles
+          );
+
           html =
             html.slice(0, match.index!) +
-            fileContent +
+            processedFileContent +
             html.slice(match.index! + match[0].length);
           continue;
         } catch (error) {
@@ -59,10 +84,33 @@ export async function processHtmlImports(
     // Standard relative path resolution
     const filePath = path.resolve(dir, importPath);
     try {
+      // Check for circular imports
+      if (processedFiles.has(filePath)) {
+        const errorMessage = `<!-- Import Error: Circular import detected for "${match[1]}" 
+               File: ${filePath}
+               This file is already being processed in the import chain -->`;
+        html =
+          html.slice(0, match.index!) +
+          errorMessage +
+          html.slice(match.index! + match[0].length);
+        continue;
+      }
+
       const fileContent = await fs.readFile(filePath, "utf8");
+
+      // Add this file to the processed set and recursively process its imports
+      const newProcessedFiles = new Set(processedFiles);
+      newProcessedFiles.add(filePath);
+
+      const processedFileContent = await processHtmlImports(
+        fileContent,
+        path.dirname(filePath),
+        newProcessedFiles
+      );
+
       html =
         html.slice(0, match.index!) +
-        fileContent +
+        processedFileContent +
         html.slice(match.index! + match[0].length);
     } catch (error) {
       const errorMessage = `<!-- Import Error: Could not find file "${match[1]}" 
