@@ -88,6 +88,10 @@ export function createStaticKitConfig(
                 // Ensure sprite lands under public if emitted by Rollup
                 return `${normalizedBase}images/sprite.svg`;
               }
+              // Handle font files - put them in fonts/ directory without hash
+              if (assetInfo.name?.match(/\.(woff2?|ttf|otf|eot)$/i)) {
+                return `${normalizedBase}fonts/[name][extname]`;
+              }
               return `${normalizedBase}assets/[name]-[hash][extname]`;
             },
           },
