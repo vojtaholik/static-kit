@@ -66,6 +66,7 @@ export function createStaticKitConfig(
     console.log("📦 Building with entries:", Object.keys(inputEntries));
 
     return {
+      base: "./",
       build: {
         outDir: config.build?.output || "dist",
         emptyOutDir: true,
