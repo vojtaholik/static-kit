@@ -93,6 +93,10 @@ export function createStaticKitConfig(
               if (assetInfo.name?.match(/\.(woff2?|ttf|otf|eot)$/i)) {
                 return `${normalizedBase}fonts/[name][extname]`;
               }
+              // Handle image files - put them in images/ directory without hash
+              if (assetInfo.name?.match(/\.(png|jpe?g|gif|webp|avif|svg)$/i)) {
+                return `${normalizedBase}images/[name][extname]`;
+              }
               return `${normalizedBase}assets/[name]-[hash][extname]`;
             },
           },

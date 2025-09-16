@@ -112,6 +112,50 @@ export function buildPlugins(options: BuildPluginsOptions): Plugin[] {
         }
       },
     },
+    // Copy images directory
+    {
+      name: "copy-images-directory",
+      apply: "build",
+      writeBundle: async () => {
+        try {
+          const srcImagesPath = path.resolve("src/images");
+          const destImagesPath = path.resolve(`dist/${normalizedBase}images`);
+
+          // Check if images directory exists
+          try {
+            await fs.access(srcImagesPath);
+          } catch {
+            // Images directory doesn't exist, skip silently
+            return;
+          }
+
+          // Create dist/images directory
+          await fs.mkdir(destImagesPath, { recursive: true });
+
+          // Copy all files from src/images to dist/public/images using fast-glob
+          const imageFiles = await fg("**/*", {
+            cwd: srcImagesPath,
+            onlyFiles: true,
+            dot: true,
+          });
+
+          for (const file of imageFiles) {
+            const srcPath = path.join(srcImagesPath, file);
+            const destPath = path.join(destImagesPath, file);
+
+            // Ensure destination directory exists
+            await fs.mkdir(path.dirname(destPath), { recursive: true });
+            await fs.copyFile(srcPath, destPath);
+          }
+
+          console.log(
+            `🖼️  Copied ${imageFiles.length} image files to dist/images`
+          );
+        } catch (error) {
+          console.warn("Could not copy images directory:", error);
+        }
+      },
+    },
     // Copy and compile JS/TS files without bundling
     {
       name: "copy-compile-js-files",
